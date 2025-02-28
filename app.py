@@ -47,6 +47,9 @@ def process_spare_parts(uploaded_file):
     # Apply description formatting
     df_cleaned["Description"] = df_cleaned["Description"].apply(clean_description)
 
+    # Ensure columns are ordered correctly: Quantity, Part Number, Description
+    df_cleaned = df_cleaned[["Quantity", "Part Number", "Description"]]
+
     return df_cleaned
 
 # Streamlit UI
@@ -67,4 +70,3 @@ if uploaded_file is not None:
     
     with open(output_file, "rb") as f:
         st.download_button("Download Cleaned File", f, file_name="cleaned_spare_parts.xlsx")
-
