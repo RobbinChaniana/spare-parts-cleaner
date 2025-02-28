@@ -6,7 +6,8 @@ import re
 def clean_description(description):
     description = re.sub(r"[:,].*?(?=\s\d|\s\()", "", description)  # Remove supplier names
     description = description.replace('"', ' IN')  # Replace inch symbols
-    return description.upper().strip()
+    description = description.upper().strip()  # Convert to uppercase
+    return description
 
 # Function to process uploaded Excel file
 def process_spare_parts(uploaded_file):
@@ -37,8 +38,13 @@ def process_spare_parts(uploaded_file):
             if current_part and current_description and quantity > 0:
                 parts_data.append((quantity, current_part, current_description))
 
+    # Create DataFrame
     df_cleaned = pd.DataFrame(parts_data, columns=["Quantity", "Part Number", "Description"])
+    
+    # Group duplicate part numbers and sum their quantities
     df_cleaned = df_cleaned.groupby(["Part Number", "Description"], as_index=False).sum()
+    
+    # Apply description formatting
     df_cleaned["Description"] = df_cleaned["Description"].apply(clean_description)
 
     return df_cleaned
@@ -50,11 +56,15 @@ uploaded_file = st.file_uploader("Upload an Excel file", type=["xlsx"])
 
 if uploaded_file is not None:
     cleaned_data = process_spare_parts(uploaded_file)
+    
+    # Display the cleaned table
     st.write("### Cleaned Spare Parts List:")
     st.dataframe(cleaned_data)
 
     # Download cleaned file
     output_file = "cleaned_spare_parts.xlsx"
     cleaned_data.to_excel(output_file, index=False)
+    
     with open(output_file, "rb") as f:
         st.download_button("Download Cleaned File", f, file_name="cleaned_spare_parts.xlsx")
+
